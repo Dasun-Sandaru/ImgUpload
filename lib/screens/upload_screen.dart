@@ -9,6 +9,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:imgupload/models/uploadResponse.dart';
 
+import '../models/marketData.dart';
+import '../services/config.dart';
+import '../services/sharedPref.dart';
+
 class UploadScreen extends StatefulWidget {
   const UploadScreen({Key? key}) : super(key: key);
 
@@ -20,7 +24,21 @@ class _UploadScreenState extends State<UploadScreen> {
   // variables
   // get image
   File? image;
+  File? image1,image2,image3,image4,image5;
   String? token = '';
+
+  @override
+  void initState() {
+    // read token
+    getToken();
+    super.initState();
+  }
+
+  // get token
+  getToken() async {
+    SharedPref sharedPref = SharedPref();
+    token = (await sharedPref.readToken())!;
+  }
 
   // widgets
 
@@ -109,7 +127,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
     requestimg.headers.addAll(headers);
     requestimg.fields['userid'] = '100';
-    requestimg.files.add(await http.MultipartFile.fromPath('image1', image!.path));
+    requestimg.files
+        .add(await http.MultipartFile.fromPath('image1', image!.path));
 
     var response = await requestimg.send();
 
@@ -151,6 +170,52 @@ class _UploadScreenState extends State<UploadScreen> {
     }
   }
 
+  // upload img without user inputs...
+  void uploadImage() async {
+    var requestimg = http.MultipartRequest("POST",Uri.parse("${Config.BACKEND_URL}market-execution"));
+
+    Map<String, String> headers = {
+      'Content-type': 'multipart/form-data',
+      'Authorization': 'Bearer $token',
+    };
+
+    print(token);
+
+    requestimg.headers.addAll(headers);
+    requestimg.fields['userid'] = '100';
+    requestimg.fields['geo_location'] = 'locationName';
+    requestimg.fields['longitude'] = 'longitude';
+    requestimg.fields['latitude'] = 'latitude';
+    requestimg.fields['outlet_name'] = 'longitude';
+    requestimg.fields['execution_type'] = '1';
+    requestimg.fields['remarks'] = 'reason';
+    requestimg.fields['id'] = '1';
+    requestimg.files.add(await http.MultipartFile.fromPath('image2', image!.path));
+
+    var res = await requestimg.send();
+
+    String fileName0 = image!.path;
+    print(fileName0);
+
+    if (res.statusCode == 200) {
+      final res_ = await http.Response.fromStream(res);
+      final parsed = json.decode(res_.body);
+      final imgresponse = MarketResponse.fromJson(parsed);
+      if (imgresponse.success) {
+        print('work');
+        // show toast
+        Fluttertoast.showToast(
+          msg: imgresponse.message,
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+        );
+      } else {
+        print('erorr: ------------------');
+      }
+    } else {
+      print(res.statusCode.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -182,5 +247,7 @@ class _UploadScreenState extends State<UploadScreen> {
       ),
     );
   }
+
+  // testing
 
 }
