@@ -21,6 +21,8 @@ class _FiveImgScreenState extends State<FiveImgScreen> {
   // variables
   File? image,image1,image2,image3,image4,image5;
 
+  String? token;
+
   // methods
 
   // pick img
@@ -78,7 +80,7 @@ class _FiveImgScreenState extends State<FiveImgScreen> {
 
 
   // widgets
-    // img select part
+  // img select part
   Widget _buildImgsSelect() {
     return Container(
       padding: const EdgeInsets.all(3.0),
@@ -209,7 +211,7 @@ class _FiveImgScreenState extends State<FiveImgScreen> {
           // imgs upload
           FiveImgHelper fiveImgHelper = FiveImgHelper();
           fiveImgHelper.fiveImgUpload(
-            "token",
+            token!,
             image1: image1,
             image2: image2,
             image3: image3,

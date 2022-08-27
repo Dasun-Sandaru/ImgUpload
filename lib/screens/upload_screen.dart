@@ -13,6 +13,9 @@ import '../models/marketData.dart';
 import '../services/config.dart';
 import '../services/sharedPref.dart';
 
+import 'package:gallery_saver/gallery_saver.dart';
+import 'package:path/path.dart' as pathpackage;
+
 class UploadScreen extends StatefulWidget {
   const UploadScreen({Key? key}) : super(key: key);
 
@@ -24,7 +27,7 @@ class _UploadScreenState extends State<UploadScreen> {
   // variables
   // get image
   File? image;
-  File? image1,image2,image3,image4,image5;
+  File? image1, image2, image3, image4, image5;
   String? token = '';
 
   @override
@@ -69,7 +72,7 @@ class _UploadScreenState extends State<UploadScreen> {
         child: RaisedButton(
           onPressed: () {
             // upload img
-            uploadImg();
+            //uploadImg();
           },
           child: const Text(
             'Upload',
@@ -102,15 +105,41 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
+
+  Widget _buildDeleteButton() {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      height: 50,
+      child: ButtonTheme(
+        minWidth: MediaQuery.of(context).size.width,
+        buttonColor: Color(0xFFee3a43), //  <-- dark color
+        textTheme: ButtonTextTheme.primary,
+        child: RaisedButton(
+          onPressed: () {
+            // upload img
+            //uploadImg();
+
+            deleteImgFromGallery(image!.path);
+          },
+          child: const Text(
+            'Delete Img',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
   // methods
 
   // pick img
   pickImage() async {
     try {
       final image = await ImagePicker().pickImage(source: ImageSource.camera);
-      if (image == null) return;
-      final imageTemp = File(image.path);
-      setState(() => this.image = imageTemp);
+      if (image == null) {
+      } else {
+        final imageTemp = File(renameFilePath(image));
+        setState(() => this.image = imageTemp);
+      }
     } on PlatformException catch (e) {
       print('Failed to pick image: $e');
     }
@@ -172,7 +201,8 @@ class _UploadScreenState extends State<UploadScreen> {
 
   // upload img without user inputs...
   void uploadImage() async {
-    var requestimg = http.MultipartRequest("POST",Uri.parse("${Config.BACKEND_URL}market-execution"));
+    var requestimg = http.MultipartRequest(
+        "POST", Uri.parse("${Config.BACKEND_URL}market-execution"));
 
     Map<String, String> headers = {
       'Content-type': 'multipart/form-data',
@@ -190,7 +220,8 @@ class _UploadScreenState extends State<UploadScreen> {
     requestimg.fields['execution_type'] = '1';
     requestimg.fields['remarks'] = 'reason';
     requestimg.fields['id'] = '1';
-    requestimg.files.add(await http.MultipartFile.fromPath('image2', image!.path));
+    requestimg.files
+        .add(await http.MultipartFile.fromPath('image2', image!.path));
 
     var res = await requestimg.send();
 
@@ -241,7 +272,7 @@ class _UploadScreenState extends State<UploadScreen> {
             const SizedBox(
               height: 10.0,
             ),
-            _buildUploadButton(),
+            _buildDeleteButton(),
           ],
         ),
       ),
@@ -250,4 +281,28 @@ class _UploadScreenState extends State<UploadScreen> {
 
   // testing
 
+  // rename file name
+  String renameFilePath(var commonImg) {
+    print('imgage  <--> $image');
+
+    String dir = pathpackage.dirname(commonImg.path);
+    print('dir galley $dir');
+    String newName = pathpackage.join(dir, '100-${DateTime.now()}.png');
+    File(commonImg.path).renameSync(newName);
+
+    print('New File Name ---> $newName');
+    GallerySaver.saveImage(newName, albumName: "ImgUploadApp");
+
+    return newName;
+  }
+
+    // delete img from gallery
+  deleteImgFromGallery(String deleteImgFromGalleryImgPath) {
+    // final dir = Directory(
+    //     '/Internal storage/Pictures/AttendanceApp/100-2022-08-26 17:09:10.627951.png');
+    final dir = Directory(deleteImgFromGalleryImgPath);
+    // dir.deleteSync(recursive: true);
+    //File('/Internal storage/Pictures/AttendanceApp/100-2022-08-26 17:09:10.627951.png').deleteSync();
+    dir.delete(recursive: true);
+  }
 }

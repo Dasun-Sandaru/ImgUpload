@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: const BoxDecoration(
               image: DecorationImage(
                 fit: BoxFit.cover,
-                image: AssetImage("assets/image/1.jpeg"),
+                image: AssetImage("assets/images/logo.png"),
               ),
             ),
           ),
@@ -213,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Image(
-                    image: AssetImage('assets/image/logo.png'),
+                    image: AssetImage('assets/images/logo.png'),
                     width: 200.0,
                     height: 160.0,
                   ),
